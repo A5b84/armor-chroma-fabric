@@ -1,0 +1,16 @@
+{
+    "text.autoconfig.armorchroma.title": "Config. do Armor Chroma",
+    "text.autoconfig.armorchroma.option.enabled": "Habilitar o mod",
+    "text.autoconfig.armorchroma.option.renderGlint": "Renderizar a aura",
+    "text.autoconfig.armorchroma.option.renderGlint.@Tooltip": "Mostra a aura de encantamento",
+    "text.autoconfig.armorchroma.option.glintIntensity": "Intensidade da aura",
+    "text.autoconfig.armorchroma.option.renderBackground": "Renderizar o fundo",
+    "text.autoconfig.armorchroma.option.renderBackground.@Tooltip": "Mostra ícones de armadura vazios quando a sua proteção for inferior a 20",
+    "text.autoconfig.armorchroma.option.compressBar": "Comprimir a barra",
+    "text.autoconfig.armorchroma.option.compressBar.@Tooltip": "Comprime a barra em diferentes bordas coloridas quando a sua proteção ultrapassar 20",
+    "text.autoconfig.armorchroma.option.displayedArmorCap": "Pontos de proteção à mostra",
+    "text.autoconfig.armorchroma.option.displayedArmorCap.@Tooltip": "Máximo de pontos de proteção a serem mostrados",
+    "text.autoconfig.armorchroma.option.reverse": "Inverter a ordem da armadura",
+
+    "armorchroma.tooltip.material": "Material da armadura: %s"
+}
