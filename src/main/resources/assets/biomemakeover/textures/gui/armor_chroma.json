@@ -1,0 +1,9 @@
+{
+    "items": {
+        "cowboy_hat": 0,
+        "witch_hat": 1
+    },
+    "materials": {
+        "biomemakeover:cladded": 2
+    }
+}

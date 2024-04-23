@@ -1,0 +1,8 @@
+{
+    "materials": {
+        "copper": 0,
+        "exposed_copper": 1,
+        "weathered_copper_": 2,
+        "oxidized_copper_": 3
+    }
+}

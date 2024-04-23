@@ -1,0 +1,9 @@
+{
+    "materials": {
+        "hybrid-aquatic:diving": 0,
+        "hybrid-aquatic:manglerfish": 1,
+        "hybrid-aquatic:eel": 2,
+        "hybrid-aquatic:moon_jelly": 3,
+        "hybrid-aquatic:turtle": 4
+    }
+}
