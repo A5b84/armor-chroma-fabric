@@ -2,9 +2,11 @@ package nukeduck.armorchroma.config;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.item.DyeableItem;
+import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import nukeduck.armorchroma.compat.ArmoredElytra;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +21,9 @@ public final class Util {
 
             if(item instanceof DyeableItem dyeableItem) {
                 return dyeableItem.getColor(stack);
+            }
+            if(item instanceof ElytraItem) {
+                return ArmoredElytra.getColor(stack);
             }
         }
         return 0xffffff;
