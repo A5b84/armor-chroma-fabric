@@ -1,0 +1,20 @@
+{
+    "modmenu.descriptionTranslation.armorchroma": "Adiciona cores, incluindo o couro tingido, e reflexos encantados à barra de armadura.",
+
+    "text.autoconfig.armorchroma.title": "Config. do Armor Chroma",
+    "text.autoconfig.armorchroma.option.enabled": "Habilitar mod",
+    "text.autoconfig.armorchroma.option.renderGlint": "Renderizar reflexo",
+    "text.autoconfig.armorchroma.option.renderGlint.@Tooltip": "Exibe o reflexo encantado nos ícones.",
+    "text.autoconfig.armorchroma.option.glintIntensity": "Intensidade do reflexo",
+    "text.autoconfig.armorchroma.option.renderBackground": "Renderizar fundo",
+    "text.autoconfig.armorchroma.option.renderBackground.@Tooltip": "Exibe ícones vazios quando os pontos\nde armadura forem menores que 20.",
+    "text.autoconfig.armorchroma.option.compressBar": "Comprimir barra",
+    "text.autoconfig.armorchroma.option.compressBar.@Tooltip": "Comprime a barra em bordas de cores diferentes\nquando os pontos de armadura ultrapassarem 20.",
+    "text.autoconfig.armorchroma.option.displayedArmorCap": "Limite de armadura exibido",
+    "text.autoconfig.armorchroma.option.displayedArmorCap.@Tooltip": "Os pontos máximos de armadura a serem exibidos.",
+    "text.autoconfig.armorchroma.option.reverse": "Inverter ordem da armadura",
+    "text.autoconfig.armorchroma.option.showMaterialInTooltip": "Exibir material em descrições",
+    "text.autoconfig.armorchroma.option.showMaterialInTooltip.@Tooltip": "Define se o material das armaduras devem\nser exibidos nas descrições do inventário.",
+
+    "armorchroma.tooltip.material": "Material da armadura: %s"
+}
