@@ -1,7 +1,7 @@
 {
     "modmenu.descriptionTranslation.armorchroma": "Adiciona cores, incluindo o couro tingido, e reflexos encantados à barra de armadura.",
 
-    "text.autoconfig.armorchroma.title": "Config. do Armor Chroma",
+    "text.autoconfig.armorchroma.title": "Ajustes do Armor Chroma",
     "text.autoconfig.armorchroma.option.enabled": "Habilitar mod",
     "text.autoconfig.armorchroma.option.renderGlint": "Renderizar reflexo",
     "text.autoconfig.armorchroma.option.renderGlint.@Tooltip": "Exibe o reflexo encantado nos ícones.",
