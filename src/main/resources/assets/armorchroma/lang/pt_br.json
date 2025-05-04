@@ -1,6 +1,4 @@
 {
-    "modmenu.descriptionTranslation.armorchroma": "Adiciona cores, incluindo o couro tingido, e reflexos encantados à barra de armadura.",
-
     "text.autoconfig.armorchroma.title": "Ajustes do Armor Chroma",
     "text.autoconfig.armorchroma.option.enabled": "Habilitar mod",
     "text.autoconfig.armorchroma.option.renderGlint": "Renderizar reflexo",
@@ -14,7 +12,9 @@
     "text.autoconfig.armorchroma.option.displayedArmorCap.@Tooltip": "Os pontos máximos de armadura a serem exibidos.",
     "text.autoconfig.armorchroma.option.reverse": "Inverter ordem da armadura",
     "text.autoconfig.armorchroma.option.showMaterialInTooltip": "Exibir material em descrições",
-    "text.autoconfig.armorchroma.option.showMaterialInTooltip.@Tooltip": "Define se o material das armaduras devem\nser exibidos nas descrições do inventário.",
+    "text.autoconfig.armorchroma.option.showMaterialInTooltip.@Tooltip": "Define se o material das armaduras deve\nser exibido nas descrições do inventário.",
 
-    "armorchroma.tooltip.material": "Material da armadura: %s"
+    "armorchroma.tooltip.material": "Material da armadura: %s",
+
+    "modmenu.descriptionTranslation.armorchroma": "Adiciona cores, incluindo o couro tingido, e reflexos encantados à barra de armadura."
 }
