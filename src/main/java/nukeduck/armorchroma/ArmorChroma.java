@@ -18,34 +18,37 @@ import org.apache.logging.log4j.Logger;
 
 public class ArmorChroma implements ClientModInitializer {
 
-    public static final String MODID = "armorchroma";
-    public static final GuiArmor GUI = new GuiArmor();
-    public static final Logger LOGGER = LogManager.getLogger();
-    public static final boolean USE_AUTO_CONFIG = FabricLoader.getInstance().isModLoaded("cloth-config2");
-    public static final int TEXTURE_SIZE = 256;
+  public static final String MODID = "armorchroma";
+  public static final GuiArmor GUI = new GuiArmor();
+  public static final Logger LOGGER = LogManager.getLogger();
+  public static final boolean USE_AUTO_CONFIG =
+      FabricLoader.getInstance().isModLoaded("cloth-config2");
+  public static final int TEXTURE_SIZE = 256;
 
-    public static ArmorChromaConfig config;
+  public static ArmorChromaConfig config;
 
-    public static final IconData ICON_DATA = new IconData();
+  public static final IconData ICON_DATA = new IconData();
 
-    @Override
-    public void onInitializeClient() {
-        ResourceManagerHelper manager = ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES);
-        manager.registerReloadListener(ICON_DATA);
+  @Override
+  public void onInitializeClient() {
+    ResourceManagerHelper manager = ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES);
+    manager.registerReloadListener(ICON_DATA);
 
-        ModContainer container = FabricLoader.getInstance().getModContainer(MODID).orElseThrow();
-        ResourceManagerHelper.registerBuiltinResourcePack(Identifier.of(MODID, "alternative-icons"), container, ResourcePackActivationType.NORMAL);
+    ModContainer container = FabricLoader.getInstance().getModContainer(MODID).orElseThrow();
+    ResourceManagerHelper.registerBuiltinResourcePack(
+        Identifier.of(MODID, "alternative-icons"), container, ResourcePackActivationType.NORMAL);
 
-        if (USE_AUTO_CONFIG) {
-            AutoConfig.register(ArmorChromaAutoConfig.class, GsonConfigSerializer::new);
-            config = AutoConfig.getConfigHolder(ArmorChromaAutoConfig.class).getConfig();
-        } else {
-            config = new ArmorChromaConfig();
-        }
-
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> ArmorChromaDebugCommand.register(dispatcher));
-        }
+    if (USE_AUTO_CONFIG) {
+      AutoConfig.register(ArmorChromaAutoConfig.class, GsonConfigSerializer::new);
+      config = AutoConfig.getConfigHolder(ArmorChromaAutoConfig.class).getConfig();
+    } else {
+      config = new ArmorChromaConfig();
     }
 
+    if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+      CommandRegistrationCallback.EVENT.register(
+          (dispatcher, registryAccess, environment) ->
+              ArmorChromaDebugCommand.register(dispatcher));
+    }
+  }
 }

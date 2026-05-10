@@ -1,10 +1,21 @@
 package nukeduck.armorchroma;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
+import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
+import static com.mojang.brigadier.arguments.DoubleArgumentType.getDouble;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
@@ -16,110 +27,109 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
-import static com.mojang.brigadier.arguments.BoolArgumentType.getBool;
-import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
-import static com.mojang.brigadier.arguments.DoubleArgumentType.getDouble;
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
-
 public class ArmorChromaDebugCommand {
 
-    private static final DynamicCommandExceptionType FAILED_ITEMLESS_EXCEPTION = new DynamicCommandExceptionType(
-            entityName -> Text.stringifiedTranslatable("commands.enchant.failed.itemless", entityName)
-    );
+  private static final DynamicCommandExceptionType FAILED_ITEMLESS_EXCEPTION =
+      new DynamicCommandExceptionType(
+          entityName ->
+              Text.stringifiedTranslatable("commands.enchant.failed.itemless", entityName));
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("armorchroma").then(
-                literal("setarmor").then(
+  public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    dispatcher.register(
+        literal("armorchroma")
+            .then(
+                literal("setarmor")
+                    .then(
                         argument("points", doubleArg())
-                                .executes(ArmorChromaDebugCommand::executeSetArmor)
-                ).then(
-                        literal("reset")
-                                .executes(ArmorChromaDebugCommand::executeResetArmor)
-                )
-        ).then(
-                literal("setglint").then(
+                            .executes(ArmorChromaDebugCommand::executeSetArmor))
+                    .then(literal("reset").executes(ArmorChromaDebugCommand::executeResetArmor)))
+            .then(
+                literal("setglint")
+                    .then(
                         argument("glint", bool())
-                                .executes(ArmorChromaDebugCommand::executeSetGlint)
-                ).then(
-                        literal("reset")
-                                .executes(ArmorChromaDebugCommand::executeResetGlint)
-                )
-        ));
+                            .executes(ArmorChromaDebugCommand::executeSetGlint))
+                    .then(literal("reset").executes(ArmorChromaDebugCommand::executeResetGlint))));
+  }
+
+  private static int executeSetArmor(CommandContext<ServerCommandSource> context)
+      throws CommandSyntaxException {
+    ItemStack stack = getActiveStack(context);
+    double points = getDouble(context, "points");
+    AttributeModifiersComponent originalModifiersComponent =
+        stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+    List<AttributeModifiersComponent.Entry> modifiers;
+
+    if (originalModifiersComponent == null) {
+      modifiers = new ArrayList<>(1);
+    } else {
+      modifiers =
+          originalModifiersComponent.modifiers().stream()
+              .filter(entry -> entry.attribute() != EntityAttributes.ARMOR)
+              .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    EntityAttributeModifier attributeModifier =
+        new EntityAttributeModifier(
+            Identifier.of(ArmorChroma.MODID, UUID.randomUUID().toString()),
+            points,
+            EntityAttributeModifier.Operation.ADD_VALUE);
+    modifiers.add(
+        new AttributeModifiersComponent.Entry(
+            EntityAttributes.ARMOR, attributeModifier, AttributeModifierSlot.ANY));
+    stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, new AttributeModifiersComponent(modifiers));
 
-    private static int executeSetArmor(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ItemStack stack = getActiveStack(context);
-        double points = getDouble(context, "points");
-        AttributeModifiersComponent originalModifiersComponent = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        List<AttributeModifiersComponent.Entry> modifiers;
+    return Command.SINGLE_SUCCESS;
+  }
 
-        if (originalModifiersComponent == null) {
-            modifiers = new ArrayList<>(1);
-        } else {
-            modifiers = originalModifiersComponent.modifiers()
-                    .stream()
-                    .filter(entry -> entry.attribute() != EntityAttributes.ARMOR)
-                    .collect(Collectors.toCollection(ArrayList::new));
-        }
+  private static int executeResetArmor(CommandContext<ServerCommandSource> context)
+      throws CommandSyntaxException {
+    ItemStack stack = getActiveStack(context);
+    AttributeModifiersComponent oldComponent = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
 
-        EntityAttributeModifier attributeModifier = new EntityAttributeModifier(Identifier.of(ArmorChroma.MODID, UUID.randomUUID().toString()), points, EntityAttributeModifier.Operation.ADD_VALUE);
-        modifiers.add(new AttributeModifiersComponent.Entry(EntityAttributes.ARMOR, attributeModifier, AttributeModifierSlot.ANY));
-        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, new AttributeModifiersComponent(modifiers));
+    if (oldComponent != null) {
+      List<AttributeModifiersComponent.Entry> modifiers =
+          oldComponent.modifiers().stream()
+              .filter(
+                  entry ->
+                      entry.attribute() != EntityAttributes.ARMOR
+                          || !entry.modifier().id().getNamespace().equals(ArmorChroma.MODID))
+              .toList();
 
-        return Command.SINGLE_SUCCESS;
+      stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, new AttributeModifiersComponent(modifiers));
     }
 
-    private static int executeResetArmor(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ItemStack stack = getActiveStack(context);
-        AttributeModifiersComponent oldComponent = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+    return Command.SINGLE_SUCCESS;
+  }
 
-        if (oldComponent != null) {
-            List<AttributeModifiersComponent.Entry> modifiers = oldComponent.modifiers()
-                    .stream()
-                    .filter(entry -> entry.attribute() != EntityAttributes.ARMOR || !entry.modifier().id().getNamespace().equals(ArmorChroma.MODID))
-                    .toList();
+  private static int executeSetGlint(CommandContext<ServerCommandSource> context)
+      throws CommandSyntaxException {
+    ItemStack stack = getActiveStack(context);
+    boolean glint = getBool(context, "glint");
 
-            stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, new AttributeModifiersComponent(modifiers));
-        }
-
-        return Command.SINGLE_SUCCESS;
+    if (glint) {
+      stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
+    } else {
+      stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false);
     }
 
-    private static int executeSetGlint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ItemStack stack = getActiveStack(context);
-        boolean glint = getBool(context, "glint");
+    return Command.SINGLE_SUCCESS;
+  }
 
-        if (glint) {
-            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
-        } else {
-            stack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false);
-        }
+  private static int executeResetGlint(CommandContext<ServerCommandSource> context)
+      throws CommandSyntaxException {
+    getActiveStack(context).remove(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+    return Command.SINGLE_SUCCESS;
+  }
 
-        return Command.SINGLE_SUCCESS;
+  private static ItemStack getActiveStack(CommandContext<ServerCommandSource> context)
+      throws CommandSyntaxException {
+    ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+    ItemStack stack = player.getMainHandStack();
+
+    if (stack.isEmpty()) {
+      throw FAILED_ITEMLESS_EXCEPTION.create(player.getName().getString());
     }
 
-    private static int executeResetGlint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        getActiveStack(context).remove(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
-        return Command.SINGLE_SUCCESS;
-    }
-
-
-    private static ItemStack getActiveStack(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-        ItemStack stack = player.getMainHandStack();
-
-        if (stack.isEmpty()) {
-            throw FAILED_ITEMLESS_EXCEPTION.create(player.getName().getString());
-        }
-
-        return stack;
-    }
+    return stack;
+  }
 }
