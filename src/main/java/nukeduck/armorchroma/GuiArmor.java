@@ -3,14 +3,13 @@ package nukeduck.armorchroma;
 import static net.minecraft.client.render.item.ItemRenderer.ITEM_ENCHANTMENT_GLINT;
 import static nukeduck.armorchroma.ArmorChroma.TEXTURE_SIZE;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -26,7 +25,6 @@ import nukeduck.armorchroma.config.Util;
 
 /** Renders the armor bar in the HUD */
 public class GuiArmor {
-
   private static final Identifier BACKGROUND =
       Identifier.of(ArmorChroma.MODID, "textures/gui/background.png");
 
@@ -43,7 +41,7 @@ public class GuiArmor {
   private static final int ROW_SPACING = 5;
 
   /** The number of armor points per row in the armor bar */
-  private static final int ARMOR_PER_ROW = 20;
+  public static final int ARMOR_PER_ROW = 20;
 
   /** Fallback attributes required when getting the player's armor */
   private static final DefaultAttributeContainer FALLBACK_ATTRIBUTES =
@@ -55,45 +53,47 @@ public class GuiArmor {
   public void draw(DrawContext context, int x, int y) {
     List<ArmorBarSegment> segments = new ArrayList<>(EquipmentSlot.VALUES.size());
     int totalPoints = buildArmorSegments(client.player, segments);
-    if (totalPoints <= 0) return;
-
-    int barPoints = 0;
-    int compressedRows = ArmorChroma.config.compressBar() ? compressRows(segments, totalPoints) : 0;
-
-    context.getMatrices().push();
-    addZOffset(context, -2); // Accounts for the +2 glint rect offset
-
-    for (ArmorBarSegment segment : segments) {
-      drawSegment(context, x, y, barPoints, segment);
-      barPoints += segment.getArmorPoints();
+    if (totalPoints <= 0) {
+      return;
     }
 
-    // Most negative zOffset here
+    int compressedRows = ArmorChroma.config.compressBar() ? compressRows(segments, totalPoints) : 0;
     drawBackground(context, x, y, compressedRows);
-    context.getMatrices().pop();
+
+    List<List<ArmorBarSegment>> rows = ArmorBarSegmentRowSplitter.splitIntoRows(segments);
+    int rowIndex = rows.size();
+
+    for (List<ArmorBarSegment> row : rows.reversed()) {
+      rowIndex--;
+      int rowY = y - rowIndex * ROW_SPACING;
+      int rowCumulativePoints = 0;
+
+      for (ArmorBarSegment segment : row) {
+        drawPartialRow(context, x, rowY, rowCumulativePoints, segment);
+        rowCumulativePoints += segment.getArmorPoints();
+      }
+    }
   }
 
   /**
    * Draws the armor bar background and, if {@code level > 0}, with a border
    *
-   * @param level The colored border level where a level is one full row ({@link #ARMOR_PER_ROW}
-   *     armor points)
+   * @param level The colored border level where a level is one full row ({@link
+   *     GuiArmor#ARMOR_PER_ROW} armor points)
    */
   private void drawBackground(DrawContext context, int x, int y, int level) {
     boolean drawBorder = level > 0;
 
     // Plain background
     if (ArmorChroma.config.renderBackground() || drawBorder) {
-      RenderSystem.setShaderColor(1, 1, 1, 1);
       context.drawTexture(
-          RenderLayer::getGuiTextured, BACKGROUND, x, y, 0, 0, 81, 9, TEXTURE_SIZE, TEXTURE_SIZE);
+          RenderPipelines.GUI_TEXTURED, BACKGROUND, x, y, 0, 0, 81, 9, TEXTURE_SIZE, TEXTURE_SIZE);
 
       // Colored border
       if (drawBorder) {
-        int color =
-            level <= BG_COLORS.length ? BG_COLORS[level - 1] : BG_COLORS[BG_COLORS.length - 1];
+        int color = BG_COLORS[Math.min(level - 1, BG_COLORS.length - 1)];
         context.drawTexture(
-            RenderLayer::getGuiTextured,
+            RenderPipelines.GUI_TEXTURED,
             BACKGROUND,
             x - 1,
             y - 1,
@@ -109,53 +109,15 @@ public class GuiArmor {
   }
 
   /**
-   * Draws all the rows needed for a single piece of armor
-   *
-   * @param barPoints The number of points in the bar before this piece
-   */
-  private void drawSegment(
-      DrawContext context, int x, int y, int barPoints, ArmorBarSegment segment) {
-    int space;
-    y -= (barPoints / ARMOR_PER_ROW) * ROW_SPACING; // Offset to account for full bars
-    int stackPoints = segment.getArmorPoints();
-
-    // Repeatedly fill rows when possible
-    while ((space = ARMOR_PER_ROW - (barPoints % ARMOR_PER_ROW)) <= stackPoints) {
-      drawPartialRow(context, x, y, ARMOR_PER_ROW - space, space, segment);
-      addZOffset(context, -3); // Move out of range of glint offset
-
-      // Move up a row
-      y -= ROW_SPACING;
-      barPoints += space;
-      stackPoints -= space;
-    }
-
-    // Whatever's left over (doesn't fill the whole row)
-    if (stackPoints > 0) {
-      drawPartialRow(context, x, y, ARMOR_PER_ROW - space, stackPoints, segment);
-      addZOffset(context, -1);
-    }
-  }
-
-  /**
    * Renders a partial row of icons, {@code stackPoints} wide
    *
    * @param barPoints The points already in the bar
    */
   private void drawPartialRow(
-      DrawContext context,
-      int left,
-      int top,
-      int barPoints,
-      int stackPoints,
-      ArmorBarSegment segment) {
+      DrawContext context, int left, int top, int barPoints, ArmorBarSegment segment) {
     ArmorIcon icon = segment.getIcon();
-
-    if (segment.hasGlint()) {
-      addZOffset(context, 2); // Glint rows should appear on top of normal rows
-    }
-
-    int i = barPoints & 1;
+    int stackPoints = segment.getArmorPoints();
+    int i = barPoints % 2;
     int x = left + barPoints * 4;
 
     // Drawing icons starts here
@@ -176,7 +138,6 @@ public class GuiArmor {
     if (segment.hasGlint()) { // Draw one glint quad for the whole row
       drawTexturedGlintRect(
           context, left + barPoints * 4, top, left, top, stackPoints * 4 + 1, ArmorIcon.ICON_SIZE);
-      addZOffset(context, -2);
     }
   }
 
@@ -190,7 +151,9 @@ public class GuiArmor {
   private int buildArmorSegments(ClientPlayerEntity player, List<ArmorBarSegment> segments) {
     AttributeContainer attributes = new AttributeContainer(FALLBACK_ATTRIBUTES);
     EntityAttributeInstance armor = attributes.getCustomInstance(EntityAttributes.ARMOR);
-    if (armor == null) return 0;
+    if (armor == null) {
+      return 0;
+    }
 
     int displayedArmorCap = ArmorChroma.config.getDisplayedArmorCap();
     int totalPoints = (int) ((EntityAttributeInstanceAccess) armor).armorChroma_getUnclampedValue();
@@ -268,18 +231,20 @@ public class GuiArmor {
   private void drawMaskedIcon(DrawContext context, int x, int y, ArmorIcon icon, ArmorIcon mask) {
     mask.draw(context, x, y);
     icon.drawMasked(context, x, y);
+    // TODO: broken, everything is rendered at the same depth so icon halves affect each other
   }
 
   /** Render an item glint over the specified quad, blending with equal depth */
   @SuppressWarnings("SameParameterValue")
   private void drawTexturedGlintRect(
       DrawContext context, int x, int y, float u, float v, int width, int height) {
+    // TODO: broken, glint doesn't render at all
     float intensity =
         client.options.getGlintStrength().getValue().floatValue()
             * ArmorChroma.config.glintIntensity();
     int color = ColorHelper.getWhite(MathHelper.clamp(intensity, 0, 1));
     context.drawTexture(
-        id -> RenderLayer.getGlint(),
+        RenderPipelines.GLINT,
         ITEM_ENCHANTMENT_GLINT,
         x,
         y,
@@ -290,9 +255,5 @@ public class GuiArmor {
         TEXTURE_SIZE,
         TEXTURE_SIZE,
         color);
-  }
-
-  private void addZOffset(DrawContext context, int z) {
-    context.getMatrices().translate(0, 0, z);
   }
 }

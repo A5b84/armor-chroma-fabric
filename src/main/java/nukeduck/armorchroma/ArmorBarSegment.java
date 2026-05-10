@@ -2,7 +2,7 @@ package nukeduck.armorchroma;
 
 import nukeduck.armorchroma.config.ArmorIcon;
 
-public class ArmorBarSegment {
+public class ArmorBarSegment implements Cloneable {
 
   private int armorPoints;
   private final ArmorIcon icon;
@@ -56,5 +56,14 @@ public class ArmorBarSegment {
         && icon.equals(segment.icon)
         && leadingMask.equals(segment.leadingMask)
         && trailingMask.equals(segment.trailingMask);
+  }
+
+  @Override
+  public ArmorBarSegment clone() {
+    try {
+      return (ArmorBarSegment) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError();
+    }
   }
 }

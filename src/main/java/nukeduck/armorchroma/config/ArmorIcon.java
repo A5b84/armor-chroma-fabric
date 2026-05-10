@@ -2,13 +2,13 @@ package nukeduck.armorchroma.config;
 
 import static nukeduck.armorchroma.ArmorChroma.TEXTURE_SIZE;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import java.util.Objects;
-import java.util.function.Function;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
-import nukeduck.armorchroma.ArmorChromaRenderLayers;
+import nukeduck.armorchroma.ArmorChromaRenderPipelines;
 
 public class ArmorIcon {
   public static final int ICON_SIZE = 9;
@@ -45,17 +45,16 @@ public class ArmorIcon {
   }
 
   public void draw(DrawContext context, int x, int y) {
-    draw(context, RenderLayer::getGuiTextured, x, y);
+    draw(context, RenderPipelines.GUI_TEXTURED, x, y);
   }
 
   public void drawMasked(DrawContext context, int x, int y) {
-    draw(context, ArmorChromaRenderLayers::getMaskedIcon, x, y);
+    draw(context, ArmorChromaRenderPipelines.MASKED_ICON_PIPELINE, x, y);
   }
 
-  private void draw(
-      DrawContext context, Function<Identifier, RenderLayer> renderLayers, int x, int y) {
+  private void draw(DrawContext context, RenderPipeline pipeline, int x, int y) {
     context.drawTexture(
-        renderLayers, texture, x, y, u, v, ICON_SIZE, ICON_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, color);
+        pipeline, texture, x, y, u, v, ICON_SIZE, ICON_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, color);
   }
 
   @Override
